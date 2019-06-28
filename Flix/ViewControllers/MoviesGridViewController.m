@@ -13,9 +13,12 @@
 @interface MoviesGridViewController () <UICollectionViewDataSource, UICollectionViewDelegate>
 
 @property (nonatomic, strong) NSArray *movies;
+@property (weak, nonatomic) IBOutlet UIActivityIndicatorView *activityIndicator;
 @property (weak, nonatomic) IBOutlet UICollectionView *collectionView;
 
 @end
+
+
 
 @implementation MoviesGridViewController
 
@@ -25,6 +28,11 @@
     self.collectionView.dataSource = self;
     self.collectionView.delegate =  self;
     
+    [self.navigationController.navigationBar setTitleTextAttributes:
+     @{NSForegroundColorAttributeName:[UIColor whiteColor]}];
+    
+    // Start the activity indicator
+    [self.activityIndicator startAnimating];
     [self fetchMovies];
     
     UICollectionViewFlowLayout *layout = (UICollectionViewFlowLayout *)self.collectionView.collectionViewLayout;
@@ -58,6 +66,7 @@
             NSLog(@"%@", dataDictionary);
             self.movies = dataDictionary[@"results"];
             [self.collectionView reloadData];
+            [self.activityIndicator stopAnimating];
 
         }
     }];
@@ -75,8 +84,11 @@
 */
 
 - (nonnull __kindof UICollectionViewCell *)collectionView:(nonnull UICollectionView *)collectionView cellForItemAtIndexPath:(nonnull NSIndexPath *)indexPath {
+    
     MovieCollectionCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"MovieCollectionCell" forIndexPath:indexPath];
+    
     NSDictionary *movie = self.movies[indexPath.item];
+    cell.titleLabel.text = movie[@"title"];
     
     NSString *baseURLString = @"https://image.tmdb.org/t/p/w500";
     NSString *posterURLString = movie[@"poster_path"];

@@ -11,14 +11,17 @@
 #import "UIImageView+AFNetworking.h"
 #import "DetailsViewController.h"
 
-@interface MoviesViewController () <UITableViewDataSource, UITableViewDelegate>
+@interface MoviesViewController () <UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (nonatomic, strong) NSArray *movies;
 @property (nonatomic, strong) UIRefreshControl *refreshControl;
 @property (weak, nonatomic) IBOutlet UIActivityIndicatorView *activityIndicator;
+@property (strong, nonatomic) NSArray *filteredData;
+@property (strong, nonatomic) UISearchController *searchController;
 
 @end
+
 
 @implementation MoviesViewController
 
@@ -28,6 +31,30 @@
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
     
+    [self.navigationController.navigationBar setTitleTextAttributes:
+     @{NSForegroundColorAttributeName:[UIColor whiteColor]}];
+
+    
+    // Initializing with searchResultsController set to nil means that
+    // searchController will use this view controller to display the search results
+    self.searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
+    self.searchController.searchResultsUpdater = self;
+    
+    // If we are using this same view controller to present the results
+    // dimming it out wouldn't make sense. Should probably only set
+    // this to yes if using another controller to display the search results.
+    self.searchController.dimsBackgroundDuringPresentation = NO;
+    
+    [self.searchController.searchBar sizeToFit];
+    self.tableView.tableHeaderView = self.searchController.searchBar;
+    
+    // Sets this view controller as presenting view controller for the search interface
+    self.definesPresentationContext = YES;
+    
+    
+    // Start the activity indicator
+    [self.activityIndicator startAnimating];
+    
     [self fetchMovies];
     
     self.refreshControl = [[UIRefreshControl alloc] init];
@@ -36,8 +63,6 @@
 }
 
 -  (void) fetchMovies {
-    // Start the activity indicator
-    [self.activityIndicator startAnimating];
 
     NSURL *url = [NSURL URLWithString:@"https://api.themoviedb.org/3/movie/now_playing?api_key=a07e22bc18f5cb106bfe4cc1f83ad8ed"];
     NSURLRequest *request = [NSURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:10.0];
@@ -49,13 +74,8 @@
         else {
             NSDictionary *dataDictionary = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil];
             
-            NSLog(@"%@", dataDictionary);
-            
             self.movies = dataDictionary[@"results"];
-            for (NSDictionary *movie in self.movies){
-                NSLog(@"%@", movie[@"title"]);
-            }
-            
+            self.filteredData = self.movies;
             [self.tableView reloadData];
 
             // Stop the activity indicator
@@ -69,14 +89,19 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
-    return self.movies.count;
+    return self.filteredData.count;
 }
+
+
+
+
+
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
     
     MovieCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MovieCell"];
     
-    NSDictionary *movie = self.movies[indexPath.row];
+    NSDictionary *movie = self.filteredData[indexPath.row];
     cell.titleLabel.text = movie[@"title"];
     cell.synopsisLabel.text = movie[@"overview"];
     
@@ -106,8 +131,31 @@
     
     DetailsViewController *detailsViewController = [segue destinationViewController];
     detailsViewController.movie = movie;
+    [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
     
     
 }
 
+- (void)updateSearchResultsForSearchController:(UISearchController *)searchController {
+    
+    NSString *searchText = searchController.searchBar.text;
+    if (searchText) {
+        
+        if (searchText.length != 0) {
+            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"title beginswith[cd] %@", searchText];
+            self.filteredData = [self.movies filteredArrayUsingPredicate:predicate];
+        }
+        else {
+            self.filteredData = self.movies;
+        }
+        
+        [self.tableView reloadData];
+        
+    }
+    
+}
+
+
+
 @end
+
