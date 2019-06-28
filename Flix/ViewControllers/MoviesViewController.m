@@ -27,43 +27,31 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
-    
     [self.navigationController.navigationBar setTitleTextAttributes:
      @{NSForegroundColorAttributeName:[UIColor whiteColor]}];
-
-    
     // Initializing with searchResultsController set to nil means that
     // searchController will use this view controller to display the search results
     self.searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
     self.searchController.searchResultsUpdater = self;
-    
     // If we are using this same view controller to present the results
     // dimming it out wouldn't make sense. Should probably only set
     // this to yes if using another controller to display the search results.
     self.searchController.dimsBackgroundDuringPresentation = NO;
-    
     [self.searchController.searchBar sizeToFit];
     self.tableView.tableHeaderView = self.searchController.searchBar;
-    
     // Sets this view controller as presenting view controller for the search interface
     self.definesPresentationContext = YES;
-    
-    
     // Start the activity indicator
     [self.activityIndicator startAnimating];
-    
     [self fetchMovies];
-    
     self.refreshControl = [[UIRefreshControl alloc] init];
     [self.tableView insertSubview:self.refreshControl atIndex:0];
     [self.refreshControl addTarget:self action:@selector(fetchMovies) forControlEvents:UIControlEventValueChanged];
 }
 
 -  (void) fetchMovies {
-
     NSURL *url = [NSURL URLWithString:@"https://api.themoviedb.org/3/movie/now_playing?api_key=a07e22bc18f5cb106bfe4cc1f83ad8ed"];
     NSURLRequest *request = [NSURLRequest requestWithURL:url cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:10.0];
     NSURLSession *session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:nil delegateQueue:[NSOperationQueue mainQueue]];
@@ -73,11 +61,9 @@
         }
         else {
             NSDictionary *dataDictionary = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil];
-            
             self.movies = dataDictionary[@"results"];
             self.filteredData = self.movies;
             [self.tableView reloadData];
-
             // Stop the activity indicator
             // Hides automatically if "Hides When Stopped" is enabled
             [self.activityIndicator stopAnimating];
@@ -85,7 +71,6 @@
         [self.refreshControl endRefreshing];
     }];
     [task resume];
-
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
@@ -98,22 +83,16 @@
 
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
-    
     MovieCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MovieCell"];
-    
     NSDictionary *movie = self.filteredData[indexPath.row];
     cell.titleLabel.text = movie[@"title"];
     cell.synopsisLabel.text = movie[@"overview"];
-    
     NSString *baseURLString = @"https://image.tmdb.org/t/p/w500";
     NSString *posterURLString = movie[@"poster_path"];
     NSString *fullPosterURLString = [baseURLString stringByAppendingString:posterURLString];
     NSURL *posterURL = [NSURL URLWithString:fullPosterURLString];
     cell.posterView.image = nil;
     [cell.posterView setImageWithURL:posterURL];
-    
-//    cell.textLabel.text = movie[@"title"];
-    
     return cell;
 }
 
@@ -132,15 +111,11 @@
     DetailsViewController *detailsViewController = [segue destinationViewController];
     detailsViewController.movie = movie;
     [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
-    
-    
 }
 
 - (void)updateSearchResultsForSearchController:(UISearchController *)searchController {
-    
     NSString *searchText = searchController.searchBar.text;
     if (searchText) {
-        
         if (searchText.length != 0) {
             NSPredicate *predicate = [NSPredicate predicateWithFormat:@"title beginswith[cd] %@", searchText];
             self.filteredData = [self.movies filteredArrayUsingPredicate:predicate];
@@ -150,12 +125,8 @@
         }
         
         [self.tableView reloadData];
-        
     }
-    
 }
-
-
 
 @end
 

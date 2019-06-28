@@ -27,28 +27,18 @@
     // Do any additional setup after loading the view.
     self.collectionView.dataSource = self;
     self.collectionView.delegate =  self;
-    
     [self.navigationController.navigationBar setTitleTextAttributes:
      @{NSForegroundColorAttributeName:[UIColor whiteColor]}];
-    
     // Start the activity indicator
     [self.activityIndicator startAnimating];
     [self fetchMovies];
-    
     UICollectionViewFlowLayout *layout = (UICollectionViewFlowLayout *)self.collectionView.collectionViewLayout;
-    
-    
     layout.minimumInteritemSpacing = 5;
     layout.minimumLineSpacing = 5;
     CGFloat postersPerLine = 2;
     CGFloat itemWidth = (self.collectionView.frame.size.width - layout.minimumInteritemSpacing * (postersPerLine - 1)) / postersPerLine;
     CGFloat itemHeight = itemWidth * 1.5;
     layout.itemSize = CGSizeMake(itemWidth, itemHeight);
-    
-    
-    
-    
-    
 }
 
 
@@ -67,7 +57,6 @@
             self.movies = dataDictionary[@"results"];
             [self.collectionView reloadData];
             [self.activityIndicator stopAnimating];
-
         }
     }];
     [task resume];
@@ -84,12 +73,9 @@
 */
 
 - (nonnull __kindof UICollectionViewCell *)collectionView:(nonnull UICollectionView *)collectionView cellForItemAtIndexPath:(nonnull NSIndexPath *)indexPath {
-    
     MovieCollectionCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"MovieCollectionCell" forIndexPath:indexPath];
-    
     NSDictionary *movie = self.movies[indexPath.item];
     cell.titleLabel.text = movie[@"title"];
-    
     NSString *baseURLString = @"https://image.tmdb.org/t/p/w500";
     NSString *posterURLString = movie[@"poster_path"];
     NSString *fullPosterURLString = [baseURLString stringByAppendingString:posterURLString];
@@ -97,7 +83,6 @@
     // cell.posterView.image = nil;
     [cell.posterView setImageWithURL:posterURL];
     return cell;
-    
 }
 
 - (NSInteger)collectionView:(nonnull UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
