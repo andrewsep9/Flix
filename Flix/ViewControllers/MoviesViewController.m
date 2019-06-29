@@ -35,6 +35,7 @@
     // searchController will use this view controller to display the search results
     self.searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
     self.searchController.searchResultsUpdater = self;
+    self.searchController.searchBar.barTintColor = [UIColor blackColor];
     // If we are using this same view controller to present the results
     // dimming it out wouldn't make sense. Should probably only set
     // this to yes if using another controller to display the search results.
